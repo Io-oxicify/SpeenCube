@@ -1,0 +1,51 @@
+name: Build Godot 3.5.3 PCK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-pck:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Get your project
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install basic tools
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y wget unzip
+
+      # 3. Download Godot 3.5.3 headless
+      - name: Download Godot
+        run: |
+          wget https://downloads.tuxfamily.org/godotengine/3.5.3/Godot_v3.5.3-stable_linux_headless.64.zip
+          unzip Godot_v3.5.3-stable_linux_headless.64.zip
+          chmod +x Godot_v3.5.3-stable_linux_headless.64
+
+      # 4. Download export templates
+      - name: Download Export Templates
+        run: |
+          wget https://downloads.tuxfamily.org/godotengine/3.5.3/Godot_v3.5.3-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/3.5.3.stable
+          unzip Godot_v3.5.3-stable_export_templates.tpz -d templates_temp
+          cp -r templates_temp/templates/* ~/.local/share/godot/export_templates/3.5.3.stable/
+
+      # 5. Export PCK
+      - name: Build PCK
+        run: |
+          mkdir -p build
+          ./Godot_v3.5.3-stable_linux_headless.64 \
+            --path . \
+            --export-pack "Linux/X11" build/game.pck
+
+      # 6. Upload result
+      - name: Upload PCK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-pck
+          path: build/game.pck
