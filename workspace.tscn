@@ -62,14 +62,10 @@ __meta__ = {
 pause_mode = 2
 anchor_left = 1.0
 anchor_right = 1.0
-margin_left = -308.0
-margin_top = -2.0
-margin_right = -208.0
-margin_bottom = 18.0
+margin_left = -301.0
+margin_right = -201.0
+margin_bottom = 20.0
 rect_min_size = Vector2( 100, 1 )
 rect_scale = Vector2( 3, 3 )
 text = "Pause"
 script = ExtResource( 4 )
-__meta__ = {
-"_edit_use_anchors_": true
-}
