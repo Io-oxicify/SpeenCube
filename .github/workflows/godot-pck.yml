@@ -76,13 +76,6 @@ jobs:
           name: godot-pck
           path: build/pc/game.pck
 
-      # check my sanity...
-      - name: Sanity check web build
-        run: |
-          echo "WEB BUILD TREE:"
-          ls -R build/web
-          test -f build/web/index.html
-
       # =========================
       # Butler setup
       # =========================
