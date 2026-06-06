@@ -1,9 +1,20 @@
-name: Build Godot 3.5.3 PCK
+name: export godot 3.5.3 game
 
 on:
   workflow_dispatch:
   push:
     branches: [ master ]
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/**'
+
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/**'
+
 
 jobs:
   build-pck:
@@ -52,3 +63,22 @@ jobs:
         with:
           name: godot-pck
           path: build/game.pck
+
+      # 6-5. downlad build artifact
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: godot-pck.zip
+          path: ./build
+
+      # 7. setup butler
+      - name: Setup Butler CLI
+        uses: jdno/setup-butler@v1
+
+      # 8. PUSH TO ITCH!!
+      - name: Push to Itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          butler push ./build-folder oxicjar/speencube:other
+
