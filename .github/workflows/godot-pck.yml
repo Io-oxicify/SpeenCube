@@ -17,68 +17,82 @@ on:
 
 
 jobs:
-  build-pck:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Get your project
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Install basic tools
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y wget unzip
 
-      # 3. Download Godot 3.5.3 headless
-      - name: Download Godot (stable mirror)
+      - name: Download Godot (3.5.3 headless)
         run: |
           wget -O godot.zip https://github.com/godotengine/godot/releases/download/3.5.3-stable/Godot_v3.5.3-stable_linux_headless.64.zip
           unzip godot.zip
           chmod +x Godot_v3.5.3-stable_linux_headless.64
 
-      # 4. Download export templates
       - name: Download Export Templates
         run: |
-          curl -L -o templates.tpz \
-          https://github.com/godotengine/godot/releases/download/3.5.3-stable/Godot_v3.5.3-stable_export_templates.tpz
+          wget -O templates.tpz https://github.com/godotengine/godot/releases/download/3.5.3-stable/Godot_v3.5.3-stable_export_templates.tpz
 
           mkdir -p ~/.local/share/godot/export_templates/3.5.3.stable/
           unzip templates.tpz -d temp_templates
 
           cp -r temp_templates/templates/* ~/.local/share/godot/export_templates/3.5.3.stable/
 
-      # 5. Export PCK
-      - name: Build PCK
+      # =========================
+      # HTML5 BUILD (ADDED FIX)
+      # =========================
+      - name: Export HTML5
         run: |
-          mkdir -p build
+          mkdir -p build/web
           ./Godot_v3.5.3-stable_linux_headless.64 \
             --path . \
-            --export-pack "Linux/X11" build/game.pck
+            --export "HTML5" build/web/index.html
 
-      # 6. Upload result
+      # =========================
+      # PCK BUILD (YOUR ORIGINAL FIXED)
+      # =========================
+      - name: Build PCK
+        run: |
+          mkdir -p build/pc
+          ./Godot_v3.5.3-stable_linux_headless.64 \
+            --path . \
+            --export-pack "Linux/X11" build/pc/game.pck
+
+      # =========================
+      # Upload PCK artifact
+      # =========================
       - name: Upload PCK artifact
         uses: actions/upload-artifact@v4
         with:
           name: godot-pck
-          path: build/game.pck
+          path: build/pc/game.pck
 
-      # 6-5. downlad build artifact
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: godot-pck.zip
-          path: ./build
-
-      # 7. setup butler
+      # =========================
+      # Butler setup
+      # =========================
       - name: Setup Butler CLI
         uses: jdno/setup-butler@v1
 
-      # 8. PUSH TO ITCH!!
-      - name: Push to Itch.io
+      # =========================
+      # Push HTML5 to itch (FIXED PATH)
+      # =========================
+      - name: Push HTML5 to itch.io
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
         run: |
-          butler push ./build-folder oxicjar/speencube:other
+          butler push build/web oxicjar/speencube:html5
 
+      # =========================
+      # Push PCK to itch (FIXED PATH)
+      # =========================
+      - name: Push PCK to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          butler push build/pc oxicjar/speencube:other
